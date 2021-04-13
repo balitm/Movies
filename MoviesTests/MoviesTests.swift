@@ -7,6 +7,7 @@
 
 import XCTest
 import Combine
+import class UIKit.UIImage
 @testable import Movies
 
 class MoviesTests: XCTestCase {
@@ -15,16 +16,20 @@ class MoviesTests: XCTestCase {
 
     func testViewModel() {
         let vm = MoviesCollectionViewModel()
+        var bag = Set<AnyCancellable>()
 
         expectation { expectation in
-            _ = vm.nowPlaying()
+            vm.fetchPlayingPosters()
                 .sink {
-                    print("completion:", $0)
+                    DLog("completion: ", $0)
                     expectation.fulfill()
                 } receiveValue: {
-                    print("recved #", $0.page, "results:", $0.results.count)
+                    let size = $0.size
+                    DLog("recved image: (", size.width, ", ", size.height, ")")
                 }
+                .store(in: &bag)
         }
+        DLog("cancellables: ", bag.count)
     }
 }
 
