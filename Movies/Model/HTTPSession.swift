@@ -14,12 +14,15 @@ enum HTTPError: Error {
 }
 
 struct NowPlaying {
+    let page: Int
     let results: [MovieListResult]
 }
 
 struct MovieListResult {
-    let poster: UIImage
+    let poster: UIImage?
 }
+
+typealias Configuration = DS.Configuration
 
 enum DataSource {
     struct NowPlaying: Decodable {
@@ -46,8 +49,14 @@ enum DataSource {
             case images
         }
 
+        static var empty: Configuration { Configuration() }
         let baseUrl: String
         let posterSizes: [String]
+
+        init() {
+            baseUrl = ""
+            posterSizes = []
+        }
 
         init(from decoder: Decoder) throws {
             let container = try decoder.container(keyedBy: Self.CodingKeys)

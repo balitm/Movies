@@ -23,8 +23,8 @@ class MoviesTests: XCTestCase {
                     DLog("completion: ", $0)
                     expectation.fulfill()
                 } receiveValue: {
-                    let size = $0.size
-                    DLog("recved image: (", size.width, ", ", size.height, ")")
+                    // let size = $0.size
+                    DLog("recved: ", $0.results.compactMap { $0.poster }.count)
                 }
                 .store(in: &bag)
         }

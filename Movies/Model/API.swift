@@ -17,8 +17,6 @@ enum API {
 
     static func nowPlaying() -> AnyPublisher<DS.NowPlaying, HTTPError> {
         let url = Self._createURL("movie/now_playing", ["language": "en-US"])
-        DLog("url: ", url.absoluteString)
-
         return _fetch(url)
     }
 
