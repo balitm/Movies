@@ -11,8 +11,7 @@ import class UIKit.UIImage
 @testable import Movies
 
 class MoviesTests: XCTestCase {
-    override func setUpWithError() throws {
-    }
+    override func setUpWithError() throws {}
 
     func testViewModel() {
         let vm = MoviesCollectionViewModel()

@@ -42,6 +42,6 @@ private extension MoviesCollectionViewModel {
             guard let path = np.posterPath else { return nil }
             return URL(string: baseUrl + size + "/" + path)
         }
-    return urls.publisher
+        return urls.publisher
     }
 }

@@ -179,6 +179,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 2993062C26245CDF00CC09B5 /* Build configuration list for PBXNativeTarget "Movies" */;
 			buildPhases = (
+				29834CE22625BCBC00902493 /* Swiftformat */,
 				299305FE26245CDE00CC09B5 /* Sources */,
 				299305FF26245CDE00CC09B5 /* Frameworks */,
 				2993060026245CDE00CC09B5 /* Resources */,
@@ -295,6 +296,27 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		29834CE22625BCBC00902493 /* Swiftformat */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = Swiftformat;
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [ \"${CONFIGURATION}\" = \"Debug\" ]; then\n    \"${SRCROOT}/swiftformat\"  --lint --verbose || true\nfi\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		299305FE26245CDE00CC09B5 /* Sources */ = {
