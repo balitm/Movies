@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import class UIKit.UIImage
 
 enum HTTPError: Error {
     case status(code: Int)
@@ -19,7 +18,7 @@ struct NowPlaying {
 }
 
 struct MovieListResult {
-    let poster: UIImage?
+    let posterURL: URL?
 }
 
 typealias Configuration = DS.Configuration

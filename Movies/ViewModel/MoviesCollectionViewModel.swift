@@ -10,7 +10,6 @@ import Combine
 import class UIKit.UIImage
 
 final class MoviesCollectionViewModel {
-    // @Published private var _nowPlaying = DS.NowPlaying(page: 0, results: [])
     @Published private var _configuration = DS.Configuration.empty
     private var _bag = Set<AnyCancellable>()
 
@@ -19,89 +18,53 @@ final class MoviesCollectionViewModel {
     }
 
     func fetchPlayingPosters() -> AnyPublisher<NowPlaying, HTTPError> {
-        let nowPlaying = PassthroughSubject<DS.NowPlaying, HTTPError>()
-        let result = PassthroughSubject<NowPlaying, HTTPError>()
+        let queue = DispatchQueue(label: "fetch", qos: .background, target: DispatchQueue.global(qos: .background))
 
         let confWithError = $_configuration
             .catch { _ in Empty<Configuration, HTTPError>() }
-            .debug()
 
-        API.nowPlaying()
-            .subscribe(nowPlaying)
-            .store(in: &_bag)
-
-        nowPlaying
-            .debug()
-            .prefix(1)
-            .map {
-                NowPlaying(page: $0.page, results: $0.results.map { _ in MovieListResult(poster: nil) })
-            }
-            .subscribe(result)
-            .store(in: &_bag)
-
-        nowPlaying
-            .debug()
+        return API.nowPlaying()
+            .receive(on: queue)
             .filter { !$0.results.isEmpty }
             .flatMap { nowPlaying in
                 confWithError
-                    .debug()
+                    .prefix(1)
                     .map { _ConfPlaying(config: $0, nowPlaying: nowPlaying) }
             }
-            .flatMap {
-                self._convertToURLs($0)
-                    .catch { _ in Empty<_IndexedURL, HTTPError>() }
+            .map { [unowned self] cp -> NowPlaying in
+                let urls = self._convertToURLs(cp)
+                return NowPlaying(page: cp.nowPlaying.page, results: urls.map { MovieListResult(posterURL: $0) })
             }
-            .flatMap { indexedURL in
-                API.downloadImage(url: indexedURL.url)
-                    .map { (image: $0, index: indexedURL.index) }
-            }
-            .zip(result) { (nowPlaying: $1, image: $0.image, index: $0.index) }
-            .map { tuple -> NowPlaying in
-                var results = tuple.nowPlaying.results
-                results[tuple.index] = MovieListResult(poster: tuple.image)
-                let new = NowPlaying(page: tuple.nowPlaying.page, results: results)
-                return new
-            }
-            .subscribe(result)
-            .store(in: &_bag)
-
-        return result.eraseToAnyPublisher()
+            .eraseToAnyPublisher()
     }
 
-    private func _getConfiguration() {
-        API.configuration()
-            .catch { _ in
-                Empty<Configuration, Never>()
-            }
-            .debug()
-            .assign(to: \._configuration, on: self)
-            .store(in: &_bag)
+    func downloadImage(from url: URL) -> AnyPublisher<UIImage?, HTTPError> {
+        API.downloadImage(url: url)
     }
-    
-    // func _fetchPlayingPosters() {
-    //     API.nowPlaying()
-    //         .catch { _ in
-    //             Empty<DS.NowPlaying, Never>()
-    //         }
-    //         .assign(to: \._nowPlaying, on: self)
-    //         .store(in: &_bag)
-    // }
 }
 
 private extension MoviesCollectionViewModel {
     typealias _ConfPlaying = (config: DS.Configuration, nowPlaying: DS.NowPlaying)
-    typealias _IndexedURL = (url: URL, index: Int)
 
-    // func _convertToURLs(_ confPlaying: _ConfPlaying) -> [URL] {
-    func _convertToURLs(_ confPlaying: _ConfPlaying) -> Publishers.Sequence<[_IndexedURL], Never> {
+    func _getConfiguration() {
+        API.configuration()
+            .catch { _ in
+                Empty<Configuration, Never>()
+            }
+            .assign(to: \._configuration, on: self)
+            .store(in: &_bag)
+    }
+
+    func _convertToURLs(_ confPlaying: _ConfPlaying) -> [URL?] {
         let baseUrl = confPlaying.config.baseUrl
-        let index = min(2, confPlaying.config.posterSizes.count - 1)
+        let index = min(3, confPlaying.config.posterSizes.count - 1)
         let size = confPlaying.config.posterSizes[index]
-        let urls = confPlaying.nowPlaying.results.enumerated().compactMap { np -> _IndexedURL? in
-            guard let path = np.element.posterPath else { return nil }
-            guard let url = URL(string: baseUrl + size + "/" + path) else { return nil }
-            return (url: url, index: np.offset)
+        let urls = confPlaying.nowPlaying.results.map { np -> URL? in
+            guard let path = np.posterPath else { return nil }
+            let url = URL(string: baseUrl + size + path)
+            // DLog(url?.absoluteString ?? "nil")
+            return url
         }
-        return urls.publisher
+        return urls
     }
 }

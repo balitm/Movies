@@ -23,11 +23,25 @@ class MoviesTests: XCTestCase {
                     DLog("completion: ", $0)
                     expectation.fulfill()
                 } receiveValue: {
-                    // let size = $0.size
-                    DLog("recved: ", $0.results.compactMap { $0.poster }.count)
+                    DLog("recved: ", $0.results.compactMap { $0.posterURL }.count)
                 }
                 .store(in: &bag)
         }
+
+        expectation { expectation in
+            vm.fetchPlayingPosters()
+                .flatMap {
+                    vm.downloadImage(from: $0.results[0].posterURL!)
+                }
+                .sink {
+                    DLog("completion: ", $0)
+                    expectation.fulfill()
+                } receiveValue: {
+                    DLog("recved: ", $0?.description ?? "nil")
+                }
+                .store(in: &bag)
+        }
+
         DLog("cancellables: ", bag.count)
     }
 }
