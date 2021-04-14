@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2989F5E826275E0000FCB0E5 /* MovieCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2989F5E726275E0000FCB0E5 /* MovieCollectionViewCell.swift */; };
 		2993060626245CDE00CC09B5 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2993060526245CDE00CC09B5 /* AppDelegate.swift */; };
 		2993060826245CDE00CC09B5 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2993060726245CDE00CC09B5 /* SceneDelegate.swift */; };
 		2993060F26245CDE00CC09B5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2993060E26245CDE00CC09B5 /* Assets.xcassets */; };
@@ -39,6 +40,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		2989F5E726275E0000FCB0E5 /* MovieCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieCollectionViewCell.swift; sourceTree = "<group>"; };
 		2993060226245CDE00CC09B5 /* Movies.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Movies.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2993060526245CDE00CC09B5 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		2993060726245CDE00CC09B5 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -142,6 +144,7 @@
 			isa = PBXGroup;
 			children = (
 				2993063F26245E3D00CC09B5 /* MoviesCollectionViewController.swift */,
+				2989F5E726275E0000FCB0E5 /* MovieCollectionViewCell.swift */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -329,6 +332,7 @@
 				2993060826245CDE00CC09B5 /* SceneDelegate.swift in Sources */,
 				2993064C262461D000CC09B5 /* HTTPSession.swift in Sources */,
 				299306742624C02400CC09B5 /* Combine+debugPrint.swift in Sources */,
+				2989F5E826275E0000FCB0E5 /* MovieCollectionViewCell.swift in Sources */,
 				299306792624CDA500CC09B5 /* API.swift in Sources */,
 				2993066C2624BFD500CC09B5 /* Log.swift in Sources */,
 			);

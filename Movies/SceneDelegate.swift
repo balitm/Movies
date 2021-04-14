@@ -14,10 +14,11 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let windowScene = scene as? UIWindowScene else { return }
 
         let window = UIWindow(windowScene: windowScene)
-        // let vc = MoviesCollectionViewController()
-        // window.rootViewController = UINavigationController(rootViewController: vc)
-        window.rootViewController = UIViewController()
-        window.rootViewController?.view.backgroundColor = .yellow
+        let vc = MoviesCollectionViewController.create(with: MoviesCollectionViewModel())
+        let nc = UINavigationController(rootViewController: vc)
+        nc.navigationBar.prefersLargeTitles = true
+        nc.navigationBar.barStyle = .default
+        window.rootViewController = nc
         self.window = window
         window.makeKeyAndVisible()
     }
