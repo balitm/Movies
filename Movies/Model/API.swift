@@ -25,8 +25,13 @@ enum API {
         return _fetch(url)
     }
 
-    static func downloadImage(url: URL) -> AnyPublisher<UIImage?, HTTPError> {
-        URLSession.shared.dataTaskPublisher(for: url)
+    static func downloadImage(url: URL?) -> AnyPublisher<UIImage?, HTTPError> {
+        guard let url = url else {
+            return Just(UIImage?(nil))
+                .mapError { _ in HTTPError.invalidResponse }
+                .eraseToAnyPublisher()
+        }
+        return URLSession.shared.dataTaskPublisher(for: url)
             .map { UIImage(data: $0.data) }
             .mapError { _ in HTTPError.invalidResponse }
             .eraseToAnyPublisher()

@@ -18,7 +18,7 @@ class MoviesTests: XCTestCase {
         var bag = Set<AnyCancellable>()
 
         expectation { expectation in
-            vm.fetchPlayingPosters()
+            vm._fetchPlayingPosters()
                 .sink {
                     DLog("completion: ", $0)
                     expectation.fulfill()
@@ -29,7 +29,7 @@ class MoviesTests: XCTestCase {
         }
 
         expectation { expectation in
-            vm.fetchPlayingPosters()
+            vm._fetchPlayingPosters()
                 .flatMap {
                     vm.downloadImage(from: $0.results[0].posterURL!)
                 }

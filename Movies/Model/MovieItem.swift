@@ -12,4 +12,8 @@ struct MovieItem: Hashable {
     let index: Int
     let url: URL?
     let image: UIImage?
+
+    var canFetchImage: Bool {
+        image == nil && url != nil
+    }
 }

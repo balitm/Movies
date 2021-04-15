@@ -14,11 +14,9 @@ enum HTTPError: Error {
 
 struct NowPlaying {
     let page: Int
-    let results: [MovieListResult]
-}
+    let results: [MovieItem]
 
-struct MovieListResult {
-    let posterURL: URL?
+    static var empty: NowPlaying { NowPlaying(page: 0, results: []) }
 }
 
 typealias Configuration = DS.Configuration
