@@ -34,15 +34,14 @@ final class MoviesCollectionViewController: UICollectionViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        collectionView.backgroundColor = .yellow
+        collectionView.backgroundColor = .systemBackground
         title = "The Movies"
         _setupLayout(collectionViewLayout as! UICollectionViewFlowLayout)
 
         // Register cell classes
         collectionView.register(MovieCollectionViewCell.self, forCellWithReuseIdentifier: _reuseId)
 
-        // _movieList = (0 ... 19).map { MovieItem(index: $0, url: nil, image: nil) }
-        // _applySnapshot(animatingDifferences: false)
+        // Bind the data source.
         _bind()
     }
 }
@@ -62,10 +61,13 @@ private extension MoviesCollectionViewController {
     private func _makeDataSource() -> _DataSource {
         let dataSource = _DataSource(
             collectionView: collectionView,
-            cellProvider: { collectionView, indexPath, item in
+            cellProvider: { [weak self] collectionView, indexPath, item in
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: _reuseId,
                                                               for: indexPath) as! MovieCollectionViewCell
                 cell.config(with: item)
+                if item.canFetchImage {
+                    self?._viewModel.downloadImage(for: item)
+                }
                 return cell
             })
         return dataSource
