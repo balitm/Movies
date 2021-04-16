@@ -30,27 +30,32 @@ final class MoviesCollectionViewModel {
         let data = PassthroughSubject<NowPlaying, Never>()
         let event = PassthroughSubject<_Event, Never>()
 
-        _fetchPlayingPosters()
-            .catch { _ in
-                Just(NowPlaying(page: 0, results: []))
+        Just(())
+            .flatMap { [unowned self] _ in
+                self._fetchPlayingPosters()
+                    .handleEvents(receiveCompletion: {
+                        DLog("completion: ", $0)
+                    }, receiveCancel: {
+                        DLog("cancel")
+                    })
+                    .map { _Event.start(nowPlaying: $0) }
+                    .catch { _ in Empty<_Event, Never>() }
+                    .debug()
             }
-            .map { _Event.start(nowPlaying: $0) }
-            .sink {
-                event.send($0)
-            }
+            .debug()
+            .subscribe(event)
             .store(in: &_bag)
 
         _item
             .subscribe(on: queue)
             .flatMap { item in
                 API.downloadImage(url: item.url)
-                    .debug()
                     .map { _Event.fetched(tuple: _IndexedImage(item.index, $0)) }
                     .catch { _ in Empty<_Event, Never>() }
+                // .debug()
             }
-            .sink {
-                event.send($0)
-            }
+            // .debug()
+            .subscribe(event)
             .store(in: &_bag)
 
         event
@@ -80,13 +85,11 @@ final class MoviesCollectionViewModel {
 }
 
 private extension MoviesCollectionViewModel {
-    typealias _ConfPlaying = (config: DS.Configuration, nowPlaying: DS.NowPlaying)
+    typealias _ConfPlaying = (config: Configuration, nowPlaying: DS.NowPlaying)
 
     func _getConfiguration() {
         API.configuration()
-            .catch { _ in
-                Empty<Configuration, Never>()
-            }
+            .catch { _ in Empty<Configuration, Never>() }
             .assign(to: \._configuration, on: self)
             .store(in: &_bag)
     }
@@ -96,18 +99,24 @@ private extension MoviesCollectionViewModel {
             .catch { _ in Empty<Configuration, HTTPError>() }
 
         return API.nowPlaying()
+            .handleEvents(receiveCompletion: {
+                DLog("completion: ", $0)
+            }, receiveCancel: {
+                DLog("cancel")
+            })
             .subscribe(on: queue)
             .filter { !$0.results.isEmpty }
+            .debug()
             .flatMap { nowPlaying in
                 confWithError
-                    .prefix(1)
-                    .map { _ConfPlaying(config: $0, nowPlaying: nowPlaying) }
+                    .map { [unowned self] in
+                        let cp = _ConfPlaying(config: $0, nowPlaying: nowPlaying)
+                        let urls = self._convertToURLs(cp)
+                        return NowPlaying(page: cp.nowPlaying.page,
+                                          results: urls.enumerated().map { MovieItem(index: $0.offset, url: $0.element, image: nil) })
+                    }
             }
-            .map { [unowned self] cp -> NowPlaying in
-                let urls = self._convertToURLs(cp)
-                return NowPlaying(page: cp.nowPlaying.page,
-                                  results: urls.enumerated().map { MovieItem(index: $0.offset, url: $0.element, image: nil) })
-            }
+            .debug()
             .eraseToAnyPublisher()
     }
 
