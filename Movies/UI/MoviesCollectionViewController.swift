@@ -38,7 +38,7 @@ final class MoviesCollectionViewController: UICollectionViewController {
         title = "The Movies"
         _setupLayout(collectionViewLayout as! UICollectionViewFlowLayout)
 
-        // Register cell classes
+        // Register cell classes.
         collectionView.register(MovieCollectionViewCell.self, forCellWithReuseIdentifier: _reuseId)
 
         // Bind the data source.
@@ -47,12 +47,17 @@ final class MoviesCollectionViewController: UICollectionViewController {
 }
 
 private extension MoviesCollectionViewController {
+    var _dataSourceProperty: [MovieItem] {
+        get { [] }
+        set {
+            _applySnapshot(items: newValue)
+        }
+    }
+
     func _bind() {
         _viewModel.dataSource()
             .map(\.results)
-            .sink { [weak self] in
-                self?._applySnapshot(items: $0)
-            }
+            .assign(to: \._dataSourceProperty, on: self)
             .store(in: &_bag)
     }
 
