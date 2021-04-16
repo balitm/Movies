@@ -16,28 +16,35 @@ class MoviesTests: XCTestCase {
     func testViewModel() {
         let vm = MoviesCollectionViewModel()
         var bag = Set<AnyCancellable>()
+        var movieItem: MovieItem?
+        let source = vm.dataSource().share()
+        var first: AnyCancellable?
 
         expectation { expectation in
-            vm._fetchPlayingPosters()
+            first = source
                 .sink {
-                    DLog("completion: ", $0)
+                    XCTAssertEqual($0.page, 1)
+                    XCTAssertEqual($0.results.compactMap { $0.url }.count, 20)
+                    XCTAssertEqual($0.results.compactMap { $0.image }.count, 0)
+                    movieItem = $0.results.first
                     expectation.fulfill()
-                } receiveValue: {
-                    DLog("recved: ", $0.results.compactMap { $0.posterURL }.count)
                 }
-                .store(in: &bag)
         }
+        first?.cancel()
+        first = nil
 
         expectation { expectation in
-            vm._fetchPlayingPosters()
-                .flatMap {
-                    vm.downloadImage(from: $0.results[0].posterURL!)
-                }
-                .sink {
-                    DLog("completion: ", $0)
+            guard let movieItem = movieItem else {
+                XCTAssert(false)
+                return
+            }
+
+            vm.downloadImage(for: movieItem)
+
+            source
+                .filter { $0.results.first?.image != nil }
+                .sink { _ in
                     expectation.fulfill()
-                } receiveValue: {
-                    DLog("recved: ", $0?.description ?? "nil")
                 }
                 .store(in: &bag)
         }
