@@ -15,8 +15,8 @@ private let _kBaseUrl = "https://api.themoviedb.org/3/"
 enum API {
     static let _decoder = _createDecoder()
 
-    static func nowPlaying() -> AnyPublisher<DS.NowPlaying, HTTPError> {
-        let url = Self._createURL("movie/now_playing", ["language": "en-US"])
+    static func nowPlaying(page: Int) -> AnyPublisher<DS.NowPlaying, HTTPError> {
+        let url = Self._createURL("movie/now_playing", ["language": "en-US", "page": String(page)])
         return _fetch(url)
     }
 

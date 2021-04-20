@@ -11,13 +11,15 @@ import class UIKit.UIImage
 @testable import Movies
 
 class MoviesTests: XCTestCase {
+    @Published var page = 1
     override func setUpWithError() throws {}
 
     func testViewModel() {
         let vm = MoviesCollectionViewModel()
         var bag = Set<AnyCancellable>()
         var movieItem: MovieItem?
-        let source = vm.dataSource().share()
+        let input = MoviesCollectionViewModel.Input(page: $page.eraseToAnyPublisher(), width: 375)
+        let source = vm.transform(input).share()
         var first: AnyCancellable?
 
         expectation { expectation in
@@ -42,8 +44,22 @@ class MoviesTests: XCTestCase {
             vm.downloadImage(for: movieItem)
 
             source
-                .filter { $0.results.first?.image != nil }
-                .sink { _ in
+                .catch { _ in Empty<NowPlaying, Error>() }
+                .tryMap { np -> UIImage in
+                    guard let image = np.results.first?.image else {
+                        throw HTTPError.invalidResponse
+                    }
+                    return image
+                }
+                .sink {
+                    switch $0 {
+                    case .finished:
+                        break
+                    case let .failure(error):
+                        XCTAssert(false, "No first image \(error).")
+                    }
+                } receiveValue: {
+                    XCTAssertLessThanOrEqual(375, $0.size.width)
                     expectation.fulfill()
                 }
                 .store(in: &bag)

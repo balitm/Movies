@@ -8,18 +8,20 @@
 import UIKit
 import Combine
 
-private let _reuseId = "Cell"
+private let _kReuseId = "Cell"
+private let _kRatio: CGFloat = 1.5
 
 enum Section {
     case main
 }
 
-private var _movieList = [MovieItem]()
-
 final class MoviesCollectionViewController: UICollectionViewController {
     private typealias _DataSource = UICollectionViewDiffableDataSource<Section, MovieItem>
     private typealias _Snapshot = NSDiffableDataSourceSnapshot<Section, MovieItem>
+    private typealias _ViewModel = MoviesCollectionViewModel
 
+    private var _width: CGFloat!
+    @Published private var _page = 1
     private var _viewModel: MoviesCollectionViewModel!
     private lazy var _dataSource = _makeDataSource()
     private var _bag = Set<AnyCancellable>()
@@ -36,10 +38,15 @@ final class MoviesCollectionViewController: UICollectionViewController {
 
         collectionView.backgroundColor = .systemBackground
         title = "The Movies"
-        _setupLayout(collectionViewLayout as! UICollectionViewFlowLayout)
 
         // Register cell classes.
-        collectionView.register(MovieCollectionViewCell.self, forCellWithReuseIdentifier: _reuseId)
+        collectionView.register(MovieCollectionViewCell.self, forCellWithReuseIdentifier: _kReuseId)
+
+        // Compute width.
+        let bounds = UIScreen.main.bounds
+        _width = min(bounds.width, bounds.height) / 2
+
+        _setupLayout(collectionViewLayout as! UICollectionViewFlowLayout)
 
         // Bind the data source.
         _bind()
@@ -55,7 +62,11 @@ private extension MoviesCollectionViewController {
     }
 
     func _bind() {
-        _viewModel.dataSource()
+        let scale = UIScreen.main.scale
+        let width = Int(_width * scale)
+        let input = _ViewModel.Input(page: $_page.eraseToAnyPublisher(),
+                                     width: width)
+        _viewModel.transform(input)
             .map(\.results)
             .assign(to: \._dataSourceProperty, on: self)
             .store(in: &_bag)
@@ -67,7 +78,7 @@ private extension MoviesCollectionViewController {
         let dataSource = _DataSource(
             collectionView: collectionView,
             cellProvider: { [weak self] collectionView, indexPath, item in
-                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: _reuseId,
+                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: _kReuseId,
                                                               for: indexPath) as! MovieCollectionViewCell
                 cell.config(with: item)
                 if item.canFetchImage {
@@ -84,11 +95,11 @@ private extension MoviesCollectionViewController {
         snapshot.appendItems(items)
         _dataSource.apply(snapshot, animatingDifferences: animatingDifferences)
     }
-}
 
-private func _setupLayout(_ layout: UICollectionViewFlowLayout) {
-    layout.itemSize = CGSize(width: 171, height: 256)
-    layout.minimumInteritemSpacing = 0
-    layout.minimumLineSpacing = 0
-    layout.scrollDirection = .vertical
+    func _setupLayout(_ layout: UICollectionViewFlowLayout) {
+        layout.itemSize = CGSize(width: _width, height: _width * _kRatio)
+        layout.minimumInteritemSpacing = 0
+        layout.minimumLineSpacing = 0
+        layout.scrollDirection = .vertical
+    }
 }
