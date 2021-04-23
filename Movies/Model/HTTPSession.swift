@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import class UIKit.UIImage
 
 enum HTTPError: Error {
     case status(code: Int)
@@ -14,12 +13,13 @@ enum HTTPError: Error {
 }
 
 struct NowPlaying {
-    let results: [MovieListResult]
+    let page: Int
+    let results: [MovieItem]
+
+    static var empty: NowPlaying { NowPlaying(page: 0, results: []) }
 }
 
-struct MovieListResult {
-    let poster: UIImage
-}
+typealias Configuration = DS.Configuration
 
 enum DataSource {
     struct NowPlaying: Decodable {
@@ -28,7 +28,39 @@ enum DataSource {
     }
 
     struct MovieListResult: Decodable {
-        let posterPath: String
+        let posterPath: String?
+    }
+
+    struct Configuration: Decodable {
+        struct Images: Decodable {
+            private enum CodingKeys: String, CodingKey {
+                case baseUrl
+                case posterSizes
+            }
+
+            let baseUrl: String
+            let posterSizes: [String]
+        }
+
+        private enum CodingKeys: String, CodingKey {
+            case images
+        }
+
+        static var empty: Configuration { Configuration() }
+        let baseUrl: String
+        let posterSizes: [String]
+
+        init() {
+            baseUrl = ""
+            posterSizes = []
+        }
+
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: Self.CodingKeys)
+            let images = try container.decode(Images.self, forKey: .images)
+            baseUrl = images.baseUrl
+            posterSizes = images.posterSizes
+        }
     }
 }
 
