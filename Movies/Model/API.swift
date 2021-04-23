@@ -58,7 +58,6 @@ private extension API {
                 }
                 return HTTPError.invalidResponse
             }
-            .debug()
             .eraseToAnyPublisher()
     }
 

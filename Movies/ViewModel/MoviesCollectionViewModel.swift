@@ -41,16 +41,12 @@ final class MoviesCollectionViewModel: ViewModelType {
         input.page
             .combineLatest(_configuration) { (page: $0, width: input.width, config: $1) }
             .subscribe(on: queue)
-            .debug()
             .flatMap {
                 Self._fetchPlayingPosters($0.page, $0.width, $0.config)
                     .map { _Event.start(nowPlaying: $0) }
                     .catch { _ in Empty<_Event, Never>() }
-                    .debug()
             }
-            .debug()
             .subscribe(event)
-            // .sink { event.send($0) }
             .store(in: &_bag)
 
         _item
@@ -59,9 +55,7 @@ final class MoviesCollectionViewModel: ViewModelType {
                 API.downloadImage(url: item.url)
                     .map { _Event.fetched(tuple: _IndexedImage(item.index, $0)) }
                     .catch { _ in Empty<_Event, Never>() }
-                    .debug()
             }
-            .debug()
             .subscribe(event)
             .store(in: &_bag)
 
@@ -102,13 +96,11 @@ private extension MoviesCollectionViewModel {
     static func _fetchPlayingPosters(_ page: Int, _ width: Int, _ config: Configuration) -> AnyPublisher<NowPlaying, HTTPError> {
         API.nowPlaying(page: page)
             .filter { !$0.results.isEmpty }
-            .debug()
             .map {
                 let urls = Self._convertToURLs(config, width, $0)
                 return NowPlaying(page: $0.page,
                                   results: urls.enumerated().map { MovieItem(index: $0.offset, url: $0.element, image: nil) })
             }
-            .debug()
             .eraseToAnyPublisher()
     }
 

@@ -154,8 +154,8 @@
 		2993063E26245E0A00CC09B5 /* UI */ = {
 			isa = PBXGroup;
 			children = (
-				2993063F26245E3D00CC09B5 /* MoviesCollectionViewController.swift */,
 				2989F5E726275E0000FCB0E5 /* MovieCollectionViewCell.swift */,
+				2993063F26245E3D00CC09B5 /* MoviesCollectionViewController.swift */,
 			);
 			path = UI;
 			sourceTree = "<group>";
