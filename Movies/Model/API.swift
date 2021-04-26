@@ -10,7 +10,7 @@ import Combine
 import class UIKit.UIImage
 
 private let _kTokenKey = "01c2282c845056a58215f4bd57f65352"
-private let _kBaseUrl = "https://api.themoviedb.org/3/"
+private let _kBaseUrl = URL(string: "https://api.themoviedb.org/3/")!
 
 enum API {
     static let _decoder = _createDecoder()
@@ -39,10 +39,10 @@ enum API {
 }
 
 private extension API {
-    static func _fetch<D: Decodable>(_ url: URL) -> AnyPublisher<D, HTTPError> {
-        DLog("url: ", url.absoluteString)
+    static func _fetch<D: Decodable>(_ urlRequest: URLRequest) -> AnyPublisher<D, HTTPError> {
+        DLog("url: ", urlRequest.url?.absoluteString ?? "nil")
 
-        return URLSession.shared.dataTaskPublisher(for: url)
+        return URLSession.shared.dataTaskPublisher(for: urlRequest)
             .tryMap { output in
                 guard let response = output.response as? HTTPURLResponse else { fatalError() }
                 guard response.statusCode == 200 else {
@@ -52,7 +52,7 @@ private extension API {
             }
             .decode(type: D.self, decoder: _decoder)
             .mapError { error -> HTTPError in
-                DLog("fetch error:", error)
+                DLog("fetch error: ", error)
                 if let httpError = error as? HTTPError {
                     return httpError
                 }
@@ -61,13 +61,19 @@ private extension API {
             .eraseToAnyPublisher()
     }
 
-    static func _createURL(_ function: String, _ parameters: [String: String] = [:]) -> URL {
-        let base = _kBaseUrl + function + "?" + "api_key=" + _kTokenKey
-        let str = parameters.reduce(base) {
-            $0 + "&" + $1.key + "=" + $1.value
-        }
-        guard let url = URL(string: str) else { fatalError() }
-        return url
+    static func _createURL(_ function: String, _ parameters: [String: String] = [:]) -> URLRequest {
+        // Assembling the url.
+        guard let url = URL(string: function, relativeTo: _kBaseUrl) else { fatalError() }
+        var components = URLComponents(url: url, resolvingAgainstBaseURL: true)!
+        components.queryItems = [URLQueryItem(name: "api_key", value: _kTokenKey)]
+            + parameters.map { URLQueryItem(name: $0, value: $1) }
+
+        // Set up the reqest.
+        var request = URLRequest(url: components.url!, timeoutInterval: 30)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        return request
     }
 
     static func _createDecoder() -> JSONDecoder {
